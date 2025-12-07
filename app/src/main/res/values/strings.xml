@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">nomeworkNotes</string>
+    <string name="no_notes">Нет задач</string>
+    <string name="done_label">Готово</string>
+    <string name="app_title">Задачи</string>
+    <string name="app_description">Список задач</string>
+</resources>
