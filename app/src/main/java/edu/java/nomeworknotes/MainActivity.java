@@ -12,6 +12,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.ArrayList;
 import java.util.List;
 import edu.java.nomeworknotes.databinding.ActivityMainBinding;
+import android.content.Intent;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -29,7 +33,9 @@ public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
     private NoteAdapter adapter;
-    private List<Note> noteList;
+    private NotesViewModel viewModel;
+
+    private ActivityResultLauncher<Intent> editNoteLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,16 +50,49 @@ public class MainActivity extends AppCompatActivity {
         int spaceInDp = (int) getResources().getDimension(R.dimen.vertical_spacing);
         recyclerView.addItemDecoration(new NoteItemDecoration(spaceInDp));
 
-        NotesViewModel viewModel = new ViewModelProvider(this).get(NotesViewModel.class);
-        adapter = new NoteAdapter(new ArrayList<>());
+        this.viewModel = new ViewModelProvider(this).get(NotesViewModel.class);
+
+        // вернулись с экрана редактирования и обновляем список заметок в зависимости от результата
+        editNoteLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                        Note updatedNote = EditNoteActivity.getNoteFromResult(result.getData());
+                        List<Note> current = new ArrayList<>(this.viewModel.getNotes().getValue());
+                        boolean found = false;
+                        for (int i = 0; i < current.size(); i++) {
+                            // пока ищем заметку для обновления по заголовку, но вообще тут нужен id
+                            if (current.get(i).getTitle().equals(updatedNote.getTitle())) {
+                                current.set(i, updatedNote);
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found) {
+                            current.add(updatedNote);
+                        }
+                        this.viewModel.setNotes(current);
+                    }
+                });
+
+        adapter = new NoteAdapter(new ArrayList<>(),
+                note -> {
+                    editNoteLauncher.launch(EditNoteActivity.editIntent(this, note));
+                },
+                note -> {
+                    List<Note> current = new ArrayList<>(viewModel.getNotes().getValue());
+                    current.remove(note);
+                    viewModel.setNotes(current);
+                }
+        );
         recyclerView.setAdapter(adapter);
 
         // тестовые данные, временное решение
         if (viewModel.getNotes().getValue() == null) {
             List<Note> initialNotes = new ArrayList<>();
-            initialNotes.add(new Note("Важная задача", "Сделать презентацию к пятнице. Нужно собрать данные по продажам.", false));
-            initialNotes.add(new Note("Покупки", "Молоко, хлеб, яйца, бананы. Не забыть корм для кота.", true));
-            initialNotes.add(new Note("Спорт", "Пойти в зал минимум 3 раза на этой неделе. Выполнить программу спины.", false));
+            initialNotes.add(new Note("Важная задача", "Сделать презентацию к пятнице. Нужно собрать данные по продажам.", false, "2026-06-01"));
+            initialNotes.add(new Note("Покупки", "Молоко, хлеб, яйца, бананы. Не забыть корм для кота.", true, "2026-06-01"));
+            initialNotes.add(new Note("Спорт", "Пойти в зал минимум 3 раза на этой неделе. Выполнить программу спины.", false, "2026-06-01"));
             viewModel.setNotes(initialNotes);
         }
 
@@ -64,5 +103,11 @@ public class MainActivity extends AppCompatActivity {
         });
 
         setSupportActionBar(binding.toolbar);
+
+        // кнопка добавления новой заметки
+        binding.fabAdd.setOnClickListener(v -> {
+            Intent intent = EditNoteActivity.newIntent(this);
+            editNoteLauncher.launch(intent);
+        });
     }
 }

@@ -17,4 +17,11 @@
     <!-- RecyclerView item decoration -->
     <dimen name="item_decoration_half">12dp</dimen>
     <dimen name="item_decoration_full">24dp</dimen>
+
+    <!-- Edit screen -->
+    <dimen name="edit_activity_padding">16dp</dimen>
+    <dimen name="edit_title_text_size">20sp</dimen>
+    <dimen name="edit_text_field_height">400dp</dimen>
+    <dimen name="edit_button_margin">8dp</dimen>
+    <dimen name="edit_section_margin">24dp</dimen>
 </resources>

@@ -4,4 +4,21 @@
     <string name="done_label">Готово</string>
     <string name="app_title">Задачи</string>
     <string name="app_description">Список задач</string>
+
+    <!-- экран редактирования задачи/заметки -->
+    <string name="edit_title">Редактирование задачи</string>
+    <string name="hint_title">Заголовок</string>
+    <string name="hint_description">Описание</string>
+    <string name="hint_priority">Приоритет</string>
+    <string name="hint_deadline">Дедлайн</string>
+    <string name="btn_save">Сохранить</string>
+    <string name="btn_cancel">Отмена</string>
+    <string name="msg_enter_title">Введите заголовок</string>
+    <string name="deadline_not_set">не установлено</string>
+
+<!--    подтверждение удаления, диалог-->
+    <string name="confirm_delete_title">Удалить заметку</string>
+    <string name="confirm_delete_message">Вы уверены, что хотите удалить заметку \"%s\"?</string>
+    <string name="confirm_delete_positive">Удалить</string>
+    <string name="confirm_delete_negative">Отмена</string>
 </resources>
