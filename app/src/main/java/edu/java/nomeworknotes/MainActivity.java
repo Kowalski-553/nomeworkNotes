@@ -15,6 +15,8 @@ import edu.java.nomeworknotes.databinding.ActivityMainBinding;
 import android.content.Intent;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import android.content.SharedPreferences;
+import androidx.appcompat.app.AppCompatDelegate;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -39,9 +41,21 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        // читаем настройки из sharedPreferences
+        SharedPreferences prefs = getSharedPreferences("app_settings", MODE_PRIVATE);
+        boolean isDarkMode = prefs.getBoolean("dark_mode", false);
+        if (isDarkMode) {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+        } else {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+        }
+
         super.onCreate(savedInstanceState);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
+        setSupportActionBar(binding.toolbar);
 
         RecyclerView recyclerView = binding.recyclerView;
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -102,12 +116,28 @@ public class MainActivity extends AppCompatActivity {
             binding.emptyView.setVisibility(notes.isEmpty() ? View.VISIBLE : View.GONE);
         });
 
-        setSupportActionBar(binding.toolbar);
-
         // кнопка добавления новой заметки
         binding.fabAdd.setOnClickListener(v -> {
             Intent intent = EditNoteActivity.newIntent(this);
             editNoteLauncher.launch(intent);
         });
+    }
+
+    // добавляем меню в тулбар
+    @Override
+    public boolean onCreateOptionsMenu(android.view.Menu menu) {
+        getMenuInflater().inflate(R.menu.main_menu, menu);
+        return true;
+    }
+
+    // обрабатываем нажатие на кнопку настроек
+    @Override
+    public boolean onOptionsItemSelected(android.view.MenuItem item) {
+        if (item.getItemId() == R.id.action_settings) {
+            Intent intent = new Intent(this, SettingsActivity.class);
+            startActivity(intent);
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 }

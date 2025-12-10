@@ -21,4 +21,10 @@
     <string name="confirm_delete_message">Вы уверены, что хотите удалить заметку \"%s\"?</string>
     <string name="confirm_delete_positive">Удалить</string>
     <string name="confirm_delete_negative">Отмена</string>
+
+<!--    экран настроек-->
+    <string name="preferences">Настройки</string>
+    <string name="dark_mode">Тёмная тема</string>
+    <string name="notifications">Уведомления</string>
+    <string name="done">Готово</string>
 </resources>
