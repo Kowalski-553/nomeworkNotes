@@ -4,9 +4,8 @@ import android.os.Bundle;
 import android.view.View;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.lifecycle.AndroidViewModel;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import java.util.ArrayList;
@@ -17,19 +16,36 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import android.content.SharedPreferences;
 import androidx.appcompat.app.AppCompatDelegate;
+import android.app.Application;
+import androidx.annotation.NonNull;
 
 
 public class MainActivity extends AppCompatActivity {
 
-    public static class NotesViewModel extends ViewModel {
-        private final MutableLiveData<List<Note>> notes = new MutableLiveData<>();
-
-        public LiveData<List<Note>> getNotes() {
-            return notes;
+    public static class NotesViewModel extends AndroidViewModel {
+        private NoteRepository repository;
+        private LiveData<List<Note>> allNotes;
+        
+        public NotesViewModel(@NonNull Application application) {
+            super(application);
+            repository = new NoteRepository(application);
+            allNotes = repository.getAllNotes();
         }
-
-        public void setNotes(List<Note> newNotes) {
-            notes.setValue(new ArrayList<>(newNotes));
+        
+        public LiveData<List<Note>> getAllNotes() {
+            return allNotes;
+        }
+        
+        public void insert(Note note) {
+            repository.insert(note);
+        }
+        
+        public void update(Note note) {
+            repository.update(note);
+        }
+        
+        public void delete(Note note) {
+            repository.delete(note);
         }
     }
 
@@ -72,20 +88,13 @@ public class MainActivity extends AppCompatActivity {
                 result -> {
                     if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                         Note updatedNote = EditNoteActivity.getNoteFromResult(result.getData());
-                        List<Note> current = new ArrayList<>(this.viewModel.getNotes().getValue());
-                        boolean found = false;
-                        for (int i = 0; i < current.size(); i++) {
-                            // пока ищем заметку для обновления по заголовку, но вообще тут нужен id
-                            if (current.get(i).getTitle().equals(updatedNote.getTitle())) {
-                                current.set(i, updatedNote);
-                                found = true;
-                                break;
-                            }
+                        if (updatedNote.getId() > 0) {
+                            // обновляем запись на экране
+                            viewModel.update(updatedNote);
+                        } else {
+                            // или добавляем новую
+                            viewModel.insert(updatedNote);
                         }
-                        if (!found) {
-                            current.add(updatedNote);
-                        }
-                        this.viewModel.setNotes(current);
                     }
                 });
 
@@ -94,24 +103,16 @@ public class MainActivity extends AppCompatActivity {
                     editNoteLauncher.launch(EditNoteActivity.editIntent(this, note));
                 },
                 note -> {
-                    List<Note> current = new ArrayList<>(viewModel.getNotes().getValue());
-                    current.remove(note);
-                    viewModel.setNotes(current);
+                    viewModel.delete(note);
+                },
+                note -> {
+                    viewModel.update(note);
                 }
         );
         recyclerView.setAdapter(adapter);
 
-        // тестовые данные, временное решение
-        if (viewModel.getNotes().getValue() == null) {
-            List<Note> initialNotes = new ArrayList<>();
-            initialNotes.add(new Note("Важная задача", "Сделать презентацию к пятнице. Нужно собрать данные по продажам.", false, "2026-06-01"));
-            initialNotes.add(new Note("Покупки", "Молоко, хлеб, яйца, бананы. Не забыть корм для кота.", true, "2026-06-01"));
-            initialNotes.add(new Note("Спорт", "Пойти в зал минимум 3 раза на этой неделе. Выполнить программу спины.", false, "2026-06-01"));
-            viewModel.setNotes(initialNotes);
-        }
-
-        // смотрим за изменениями в ViewModel и обновляем адаптер (через адаптер?)
-        viewModel.getNotes().observe(this, notes -> {
+        // смотрим за изменениями в ViewModel и обновляем адаптер
+        viewModel.getAllNotes().observe(this, notes -> {
             adapter.updateNotes(notes);
             binding.emptyView.setVisibility(notes.isEmpty() ? View.VISIBLE : View.GONE);
         });

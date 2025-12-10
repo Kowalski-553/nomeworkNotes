@@ -18,6 +18,7 @@ public class EditNoteActivity extends AppCompatActivity {
 
     private EditNoteActivityBinding binding;
     private boolean isNewNote;
+    private Note currentNote;
 
     public static Intent newIntent(Activity activity) {
         Intent intent = new Intent(activity, EditNoteActivity.class);
@@ -42,14 +43,15 @@ public class EditNoteActivity extends AppCompatActivity {
         binding = EditNoteActivityBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        Note note = (Note) getIntent().getSerializableExtra(EXTRA_NOTE);
+        currentNote = (Note) getIntent().getSerializableExtra(EXTRA_NOTE);
         isNewNote = getIntent().getBooleanExtra(EXTRA_IS_NEW, false);
 
         // если редактируем, то заполняем поля уже тем, что есть для этой заметки
-        if (note != null && !isNewNote) {
-            binding.editTextTitle.setText(note.getTitle());
-            binding.editTextDescription.setText(note.getDescription());
-            binding.checkDone.setChecked(note.isDone());
+        if (currentNote != null && !isNewNote) {
+            binding.editTextTitle.setText(currentNote.getTitle());
+            binding.editTextDescription.setText(currentNote.getDescription());
+            binding.checkDone.setChecked(currentNote.isDone());
+            binding.editTextDeadline.setText(currentNote.getDeadline());
         }
 
         TextInputEditText editTextDeadline = binding.editTextDeadline;
@@ -81,9 +83,9 @@ public class EditNoteActivity extends AppCompatActivity {
 
         // кнопки отмены и сохранения
         binding.btnCancel.setOnClickListener(v -> {
-                    setResult(RESULT_CANCELED, null);
-                    finish();
-                });
+            setResult(RESULT_CANCELED, null);
+            finish();
+        });
         binding.btnSave.setOnClickListener(v -> {
             String title = binding.editTextTitle.getText().toString().trim();
             if (title.isEmpty()) {
@@ -96,15 +98,24 @@ public class EditNoteActivity extends AppCompatActivity {
                 deadline = getString(R.string.deadline_not_set);
             }
 
-            Note resultNote = new Note(
-                    title,
-                    binding.editTextDescription.getText().toString(),
-                    binding.checkDone.isChecked(),
-                    deadline
-            );
+            if (isNewNote) {
+                // Создаем новую заметку
+                currentNote = new Note(
+                        title,
+                        binding.editTextDescription.getText().toString(),
+                        binding.checkDone.isChecked(),
+                        deadline
+                );
+            } else {
+                // Обновляем существующую заметку
+                currentNote.setTitle(title);
+                currentNote.setDescription(binding.editTextDescription.getText().toString());
+                currentNote.setDone(binding.checkDone.isChecked());
+                currentNote.setDeadline(deadline);
+            }
 
             Intent resultIntent = new Intent();
-            resultIntent.putExtra(EXTRA_NOTE, resultNote);
+            resultIntent.putExtra(EXTRA_NOTE, currentNote);
             setResult(RESULT_OK, resultIntent);
             finish();
         });

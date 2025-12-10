@@ -4,7 +4,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.PopupMenu;
-
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
@@ -21,6 +20,7 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteViewHolder
     private List<Note> noteList;
     private OnEditClickListener onEditClickListener;
     private OnDeleteClickListener onDeleteClickListener;
+    private OnDoneChangeListener onDoneChangeListener;
 
     public interface OnEditClickListener {
         void onEditClick(Note note);
@@ -30,10 +30,16 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteViewHolder
         void onDeleteClick(Note note);
     }
 
-    public NoteAdapter(List<Note> noteList, OnEditClickListener onEditClickListener, OnDeleteClickListener onDeleteClickListener) {
+    public interface OnDoneChangeListener {
+        void onDoneChange(Note note);
+    }
+
+    public NoteAdapter(List<Note> noteList, OnEditClickListener onEditClickListener, OnDeleteClickListener onDeleteClickListener, OnDoneChangeListener onDoneChangeListener) {
         this.noteList = noteList;
         this.onEditClickListener = onEditClickListener;
-        this.onDeleteClickListener = onDeleteClickListener;    }
+        this.onDeleteClickListener = onDeleteClickListener;
+        this.onDoneChangeListener = onDoneChangeListener;
+    }
 
     @NonNull
     @Override
@@ -46,7 +52,7 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteViewHolder
     @Override
     public void onBindViewHolder(@NonNull NoteViewHolder holder, int position) {
         Note note = noteList.get(position);
-        holder.bind(note, onEditClickListener, onDeleteClickListener);
+        holder.bind(note, onEditClickListener, onDeleteClickListener, onDoneChangeListener);
     }
 
     @Override
@@ -62,13 +68,16 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteViewHolder
             this.binding = binding;
         }
 
-        void bind(Note note, OnEditClickListener editListener, OnDeleteClickListener deleteListener) {
+        void bind(Note note, OnEditClickListener editListener, OnDeleteClickListener deleteListener, OnDoneChangeListener doneChangeListener) {
             binding.textTitle.setText(note.getTitle());
             binding.textDescription.setText(note.getDescription());
             binding.checkDone.setChecked(note.isDone());
 
             binding.checkDone.setOnCheckedChangeListener((buttonView, isChecked) -> {
                 note.setDone(isChecked);
+                if (doneChangeListener != null) {
+                    doneChangeListener.onDoneChange(note);
+                }
             });
 
             // контекстное меню по долгому нажатию
