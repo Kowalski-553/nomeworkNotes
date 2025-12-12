@@ -17,6 +17,8 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import android.content.SharedPreferences;
 import androidx.appcompat.app.AppCompatDelegate;
 import android.app.Application;
+import androidx.core.splashscreen.SplashScreen;
+
 import androidx.annotation.NonNull;
 
 
@@ -57,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
+        SplashScreen.installSplashScreen(this);
         // читаем настройки из sharedPreferences
         SharedPreferences prefs = getSharedPreferences("app_settings", MODE_PRIVATE);
         boolean isDarkMode = prefs.getBoolean("dark_mode", false);

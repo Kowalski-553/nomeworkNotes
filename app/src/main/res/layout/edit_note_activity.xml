@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:fillViewport="true">
 
     <LinearLayout
@@ -86,7 +87,7 @@
 
         </com.google.android.material.textfield.TextInputLayout>
 
-        <CheckBox
+        <com.google.android.material.checkbox.MaterialCheckBox
             android:id="@+id/checkDone"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -98,21 +99,24 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSave"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginEnd="@dimen/edit_button_margin"
-                android:text="@string/btn_save" />
+                android:text="@string/btn_save"
+                style="@style/Widget.MaterialComponents.Button" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnCancel"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginStart="@dimen/edit_button_margin"
-                android:text="@string/btn_cancel" />
+                android:text="@string/btn_cancel"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                app:strokeWidth="5dp"/>
 
         </LinearLayout>
 

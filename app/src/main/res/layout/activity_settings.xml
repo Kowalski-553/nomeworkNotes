@@ -51,13 +51,14 @@
             android:layout_height="wrap_content" />
     </LinearLayout>
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btnDone"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:text="@string/done"
         android:layout_marginTop="32dp"
-        android:onClick="onDoneClick" />
+        android:onClick="onDoneClick"
+        style="@style/Widget.MaterialComponents.Button" />
 
 </LinearLayout>
