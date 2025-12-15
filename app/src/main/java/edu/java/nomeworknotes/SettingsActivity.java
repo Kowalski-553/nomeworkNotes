@@ -5,6 +5,11 @@ import android.os.Bundle;
 import android.widget.Switch;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
+import android.Manifest;
+import android.content.pm.PackageManager;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import android.os.Build;
 
 public class SettingsActivity extends AppCompatActivity {
 
@@ -56,6 +61,18 @@ public class SettingsActivity extends AppCompatActivity {
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.putBoolean(KEY_NOTIFICATIONS, isChecked);
             editor.apply();
+            
+            if (isChecked) {
+                // запрос разрешения на уведомления при включении тумблера
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) 
+                        != PackageManager.PERMISSION_GRANTED) {
+                        ActivityCompat.requestPermissions(this, 
+                            new String[]{Manifest.permission.POST_NOTIFICATIONS}, 
+                            1001);
+                    }
+                }
+            }
         });
     }
 

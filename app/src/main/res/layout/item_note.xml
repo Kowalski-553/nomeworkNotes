@@ -49,6 +49,22 @@
             android:maxLines="3"
             tools:text="Описание заметки. Может быть длинным, но режем, если не помещается в три строки."
             android:textSize="@dimen/description_text_size" />
+        <!-- Приоритет -->
+        <TextView
+            android:id="@+id/textPriority"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/description_margin_top"
+            android:textSize="@dimen/description_text_size"
+            tools:text="Важность" />
+        <!-- Дедлайн -->
+        <TextView
+            android:id="@+id/textDeadline"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/description_margin_top"
+            android:textSize="@dimen/description_text_size"
+            tools:text="15.12.2025 17:20" />
  
     </LinearLayout>
  

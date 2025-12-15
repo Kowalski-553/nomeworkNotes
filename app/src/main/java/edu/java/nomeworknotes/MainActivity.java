@@ -1,4 +1,8 @@
 package edu.java.nomeworknotes;
+ 
+import java.util.Comparator;
+import java.util.stream.Collectors;
+ 
 
 import android.os.Bundle;
 import android.view.View;
@@ -85,20 +89,20 @@ public class MainActivity extends AppCompatActivity {
         this.viewModel = new ViewModelProvider(this).get(NotesViewModel.class);
 
         // вернулись с экрана редактирования и обновляем список заметок в зависимости от результата
-        editNoteLauncher = registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(),
-                result -> {
-                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                        Note updatedNote = EditNoteActivity.getNoteFromResult(result.getData());
-                        if (updatedNote.getId() > 0) {
-                            // обновляем запись на экране
-                            viewModel.update(updatedNote);
-                        } else {
-                            // или добавляем новую
-                            viewModel.insert(updatedNote);
-                        }
-                    }
-                });
+                editNoteLauncher = registerForActivityResult(
+                        new ActivityResultContracts.StartActivityForResult(),
+                        result -> {
+                            if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                                Note updatedNote = EditNoteActivity.getNoteFromResult(result.getData());
+                                if (updatedNote.getId() > 0) {
+                                    viewModel.update(updatedNote);
+                                    adapter.updateNotes(viewModel.getAllNotes().getValue() != null ?
+                                            viewModel.getAllNotes().getValue() : new java.util.ArrayList<>());
+                                } else {
+                                    viewModel.insert(updatedNote);
+                                }
+                            }
+                        });
 
         adapter = new NoteAdapter(new ArrayList<>(),
                 note -> {
@@ -115,8 +119,26 @@ public class MainActivity extends AppCompatActivity {
 
         // смотрим за изменениями в ViewModel и обновляем адаптер
         viewModel.getAllNotes().observe(this, notes -> {
-            adapter.updateNotes(notes);
-            binding.emptyView.setVisibility(notes.isEmpty() ? View.VISIBLE : View.GONE);
+            // сортируем по дедлайну от ближайшего к отдалённому
+            List<Note> sorted = notes.stream()
+                .filter(n -> n.getDeadline()!=null && !n.getDeadline().isEmpty())
+                .sorted(Comparator.comparing(
+                    n -> DeadlineNotificationService.parseDeadline(n.getDeadline())
+                ))
+                .collect(Collectors.toList());
+            // добавляем заметки без дедлайна в конец
+            sorted.addAll(notes.stream()
+                .filter(n -> n.getDeadline()==null || n.getDeadline().isEmpty())
+                .collect(Collectors.toList()));
+            adapter.updateNotes(sorted);
+            binding.emptyView.setVisibility(sorted.isEmpty() ? View.VISIBLE : View.GONE);
+            
+            // проверяем настройки уведомлений
+            boolean notificationsEnabled = prefs.getBoolean("notifications_enabled", true);
+            if (notificationsEnabled) {
+                NotificationHelper.createNotificationChannel(this);
+                DeadlineNotificationService.scheduleDeadlineNotifications(this, sorted);
+            }
         });
 
         // кнопка добавления новой заметки

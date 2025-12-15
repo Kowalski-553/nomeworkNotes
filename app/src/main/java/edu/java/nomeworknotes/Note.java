@@ -23,11 +23,15 @@ public class Note implements Serializable {
     @ColumnInfo(name = "deadline")
     private String deadline;
 
-    public Note(String title, String description, boolean isDone, String deadline) {
+    @ColumnInfo(name = "priority")
+    private String priority;
+
+    public Note(String title, String description, boolean isDone, String deadline, String priority) {
         this.title = title;
         this.description = description;
         this.isDone = isDone;
         this.deadline = deadline;
+        this.priority = priority;
     }
 
     public long getId() {
@@ -68,5 +72,11 @@ public class Note implements Serializable {
 
     public void setDeadline(String deadline) {
         this.deadline = deadline;
+    }
+    public String getPriority() {
+        return priority;
+    }
+    public void setPriority(String priority) {
+        this.priority = priority;
     }
 }

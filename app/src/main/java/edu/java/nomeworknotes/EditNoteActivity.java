@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import java.util.Calendar;
 import com.google.android.material.textfield.TextInputEditText;
 import android.app.DatePickerDialog;
+import android.app.TimePickerDialog;
 import edu.java.nomeworknotes.databinding.EditNoteActivityBinding;
 
 public class EditNoteActivity extends AppCompatActivity {
@@ -19,6 +20,7 @@ public class EditNoteActivity extends AppCompatActivity {
     private EditNoteActivityBinding binding;
     private boolean isNewNote;
     private Note currentNote;
+    private ArrayAdapter<String> arrayAdapter;
 
     public static Intent newIntent(Activity activity) {
         Intent intent = new Intent(activity, EditNoteActivity.class);
@@ -46,12 +48,20 @@ public class EditNoteActivity extends AppCompatActivity {
         currentNote = (Note) getIntent().getSerializableExtra(EXTRA_NOTE);
         isNewNote = getIntent().getBooleanExtra(EXTRA_IS_NEW, false);
 
+        String[] priorities = getResources().getStringArray(R.array.priority_options);
+        arrayAdapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_item, priorities);
+        arrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        binding.spinnerPriority.setAdapter(arrayAdapter);
+
         // если редактируем, то заполняем поля уже тем, что есть для этой заметки
         if (currentNote != null && !isNewNote) {
             binding.editTextTitle.setText(currentNote.getTitle());
             binding.editTextDescription.setText(currentNote.getDescription());
             binding.checkDone.setChecked(currentNote.isDone());
             binding.editTextDeadline.setText(currentNote.getDeadline());
+            int idx = arrayAdapter.getPosition(currentNote.getPriority());
+            if (idx >= 0) binding.spinnerPriority.setSelection(idx);
         }
 
         TextInputEditText editTextDeadline = binding.editTextDeadline;
@@ -66,20 +76,24 @@ public class EditNoteActivity extends AppCompatActivity {
             DatePickerDialog dialog = new DatePickerDialog(
                     this,
                     (view, selectedYear, selectedMonth, selectedDay) -> {
-                        String date = String.format("%02d.%02d.%04d", selectedDay, selectedMonth + 1, selectedYear);
-                        editTextDeadline.setText(date);
+                        // Получаем текущее время для установки времени по умолчанию
+                        int hour = calendar.get(Calendar.HOUR_OF_DAY);
+                        int minute = calendar.get(Calendar.MINUTE);
+                        // добавил выбор времени
+                        TimePickerDialog timeDialog = new TimePickerDialog(
+                                this,
+                                (timeView, selectedHour, selectedMinute) -> {
+                                    String date = String.format("%02d.%02d.%04d %02d:%02d", 
+                                        selectedDay, selectedMonth + 1, selectedYear, selectedHour, selectedMinute);
+                                    editTextDeadline.setText(date);
+                                },
+                                hour, minute, true);
+                        timeDialog.show();
                     },
                     year, month, day
             );
             dialog.show();
         });
-
-        // формируем выпадашку с приоритетами
-        String[] priorities = getResources().getStringArray(R.array.priority_options);
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_spinner_item, priorities);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        binding.spinnerPriority.setAdapter(adapter);
 
         // кнопки отмены и сохранения
         binding.btnCancel.setOnClickListener(v -> {
@@ -98,13 +112,16 @@ public class EditNoteActivity extends AppCompatActivity {
                 deadline = getString(R.string.deadline_not_set);
             }
 
+            String priority = (String) binding.spinnerPriority.getSelectedItem();
+
             if (isNewNote) {
                 // Создаем новую заметку
                 currentNote = new Note(
                         title,
                         binding.editTextDescription.getText().toString(),
                         binding.checkDone.isChecked(),
-                        deadline
+                        deadline,
+                        priority
                 );
             } else {
                 // Обновляем существующую заметку
@@ -112,6 +129,7 @@ public class EditNoteActivity extends AppCompatActivity {
                 currentNote.setDescription(binding.editTextDescription.getText().toString());
                 currentNote.setDone(binding.checkDone.isChecked());
                 currentNote.setDeadline(deadline);
+                currentNote.setPriority(priority);
             }
 
             Intent resultIntent = new Intent();

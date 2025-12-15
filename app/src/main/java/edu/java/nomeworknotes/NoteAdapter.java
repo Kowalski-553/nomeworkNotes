@@ -13,7 +13,7 @@ import edu.java.nomeworknotes.databinding.ItemNoteBinding;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import android.content.Context;
-import androidx.appcompat.app.AlertDialog;
+import java.util.Calendar;
 
 public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteViewHolder> {
 
@@ -68,24 +68,38 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteViewHolder
             this.binding = binding;
         }
 
-        void bind(Note note, OnEditClickListener editListener, OnDeleteClickListener deleteListener, OnDoneChangeListener doneChangeListener) {
-            binding.textTitle.setText(note.getTitle());
-            binding.textDescription.setText(note.getDescription());
-            binding.checkDone.setChecked(note.isDone());
-
-            binding.checkDone.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                note.setDone(isChecked);
-                if (doneChangeListener != null) {
-                    doneChangeListener.onDoneChange(note);
-                }
-            });
-
-            // контекстное меню по долгому нажатию
-            binding.getRoot().setOnLongClickListener(v -> {
-                showContextMenu(v, note, editListener, deleteListener);
-                return true;
-            });
+    void bind(Note note, OnEditClickListener editListener, OnDeleteClickListener deleteListener, OnDoneChangeListener doneChangeListener) {
+        binding.textTitle.setText(note.getTitle());
+        binding.textDescription.setText(note.getDescription());
+        binding.checkDone.setChecked(note.isDone());
+        binding.textPriority.setText(note.getPriority()!=null?note.getPriority():"");
+        binding.textDeadline.setText(note.getDeadline());
+ 
+        // подсвечиваю просроченные сроки
+        if (note.getDeadline()!=null && !note.getDeadline().isEmpty()) {
+            Calendar deadlineTime = DeadlineNotificationService.parseDeadline(note.getDeadline());
+            if (deadlineTime!=null && deadlineTime.getTimeInMillis() < System.currentTimeMillis()) {
+                binding.textDeadline.setTextColor(android.graphics.Color.RED);
+            } else {
+                binding.textDeadline.setTextColor(android.graphics.Color.BLACK);
+            }
+        } else {
+            binding.textDeadline.setTextColor(android.graphics.Color.BLACK);
         }
+ 
+        binding.checkDone.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            note.setDone(isChecked);
+            if (doneChangeListener != null) {
+                doneChangeListener.onDoneChange(note);
+            }
+        });
+ 
+        // контекстное меню по долгому нажатию
+        binding.getRoot().setOnLongClickListener(v -> {
+            showContextMenu(v, note, editListener, deleteListener);
+            return true;
+        });
+    }
 
         private void showContextMenu(View view, Note note, OnEditClickListener editListener, OnDeleteClickListener deleteListener) {
             PopupMenu popup = new PopupMenu(view.getContext(), view);
@@ -159,9 +173,7 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteViewHolder
         }
     }
     public void updateNotes(List<Note> newNotes) {
-        NoteDiffCallback callback = new NoteDiffCallback(this.noteList, newNotes);
-        DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(callback);
         this.noteList = new ArrayList<>(newNotes);
-        diffResult.dispatchUpdatesTo(this);
+        notifyDataSetChanged();
     }
 }
