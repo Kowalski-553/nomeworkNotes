@@ -21,6 +21,7 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteViewHolder
     private OnEditClickListener onEditClickListener;
     private OnDeleteClickListener onDeleteClickListener;
     private OnDoneChangeListener onDoneChangeListener;
+    private int lastAnimatedPosition = -1;
 
     public interface OnEditClickListener {
         void onEditClick(Note note);
@@ -53,11 +54,39 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteViewHolder
     public void onBindViewHolder(@NonNull NoteViewHolder holder, int position) {
         Note note = noteList.get(position);
         holder.bind(note, onEditClickListener, onDeleteClickListener, onDoneChangeListener);
+
+        // анимация появления карточки
+        animateViewIfNecessary(holder.itemView, position);
     }
 
     @Override
     public int getItemCount() {
         return noteList.size();
+    }
+
+    // анимация постепкенного появления заметок на экране
+    private void animateViewIfNecessary(View itemView, int position) {
+        if (position > lastAnimatedPosition) {
+            lastAnimatedPosition = position;
+
+            // начальное состояние, прозрачное и чуть меньше
+            itemView.setAlpha(0f);
+            itemView.setScaleX(0.9f);
+            itemView.setScaleY(0.9f);
+            itemView.setTranslationY(20f);
+
+            // в зависимости от позиции карточки запускаем анимацию с задержкой
+            itemView.animate()
+                .alpha(1f)
+                .scaleX(1f)
+                .scaleY(1f)
+                .translationY(0f)
+                .setDuration(300)
+                .setStartDelay(position * 100)
+                .setInterpolator(android.view.animation.AnimationUtils.loadInterpolator(
+                    itemView.getContext(), android.R.anim.decelerate_interpolator))
+                .start();
+        }
     }
 
     static class NoteViewHolder extends RecyclerView.ViewHolder {
@@ -74,7 +103,7 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteViewHolder
         binding.checkDone.setChecked(note.isDone());
         binding.textPriority.setText(note.getPriority()!=null?note.getPriority():"");
         binding.textDeadline.setText(note.getDeadline());
- 
+
         // подсвечиваю просроченные сроки
         if (note.getDeadline()!=null && !note.getDeadline().isEmpty()) {
             Calendar deadlineTime = DeadlineNotificationService.parseDeadline(note.getDeadline());
@@ -86,14 +115,14 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteViewHolder
         } else {
             binding.textDeadline.setTextColor(android.graphics.Color.BLACK);
         }
- 
+
         binding.checkDone.setOnCheckedChangeListener((buttonView, isChecked) -> {
             note.setDone(isChecked);
             if (doneChangeListener != null) {
                 doneChangeListener.onDoneChange(note);
             }
         });
- 
+
         // контекстное меню по долгому нажатию
         binding.getRoot().setOnLongClickListener(v -> {
             showContextMenu(v, note, editListener, deleteListener);
@@ -175,5 +204,8 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteViewHolder
     public void updateNotes(List<Note> newNotes) {
         this.noteList = new ArrayList<>(newNotes);
         notifyDataSetChanged();
+
+        // сброс анимации
+        lastAnimatedPosition = -1;
     }
 }
