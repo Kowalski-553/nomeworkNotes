@@ -2,7 +2,6 @@ package edu.java.nomeworknotes;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.widget.Switch;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import android.Manifest;
@@ -10,6 +9,8 @@ import android.content.pm.PackageManager;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import android.os.Build;
+import com.google.android.material.materialswitch.MaterialSwitch;
+
 
 public class SettingsActivity extends AppCompatActivity {
 
@@ -18,8 +19,13 @@ public class SettingsActivity extends AppCompatActivity {
     private static final String KEY_NOTIFICATIONS = "notifications_enabled";
 
     private SharedPreferences sharedPreferences;
-    private Switch switchDarkMode;
-    private Switch switchNotifications;
+    private MaterialSwitch switchDarkMode;
+    // здесь были просто Switch, и когда я
+    // менял в разметке свитчи
+    // на Материал, я просто забыл здесь написать
+    // MaterialSwitch, и поэтому при входе на этот активити
+    // приложение крашилось
+    private MaterialSwitch switchNotifications;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
