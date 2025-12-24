@@ -123,6 +123,13 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteViewHolder
             }
         });
 
+        //  редактирование по клику на карточку
+        binding.getRoot().setOnClickListener(v -> {
+            if (editListener != null) {
+                editListener.onEditClick(note);
+            }
+        });
+
         // контекстное меню по долгому нажатию
         binding.getRoot().setOnLongClickListener(v -> {
             showContextMenu(v, note, editListener, deleteListener);
